@@ -1,0 +1,10 @@
+Flask
+pytesseract
+Pillow
+Flask-SQLAlchemy
+Flask-WTF
+Flask==2.3.2
+Flask-SQLAlchemy==3.0.3
+pytesseract==0.3.10
+Pillow==8.4.0
+Werkzeug==2.3.2
