@@ -1,2 +1,2 @@
-# PumpPal
-A web application for managing fuel expenses using OCR and analytics.
+# Receipt reader 
+A web application for reading your receipt expenses using OCR and analytics.
