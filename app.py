@@ -1,22 +1,20 @@
+from flask import Flask, render_template, request, redirect, url_for, flash
 import os
+from werkzeug.utils import secure_filename
+import pytesseract
+from PIL import Image
 import cv2
 import pytesseract
-from flask import Flask, request, render_template, flash, redirect, url_for
-from werkzeug.utils import secure_filename
-import numpy as np
 
-# Set the path to the Tesseract executable (Ensure it's correct)
-pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'  # Update this path if necessary
+# Explicitly specify the Tesseract executable path if needed
+pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
-# Initialize Flask app
 app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = 'uploads'
+app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif'}
+app.secret_key = 'your_secret_key'  # Ensure this is a secret key for flash messages
 
-# Configuration settings
-app.config['SECRET_KEY'] = 'your_secret_key'  # Change this to a more secure key
-app.config['UPLOAD_FOLDER'] = 'uploads'  # Folder to store uploaded images
-app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg'}  # Allowed image file extensions
-
-# Create the upload folder if it doesn't exist
+# Ensure the upload folder exists
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
 
@@ -24,77 +22,66 @@ if not os.path.exists(app.config['UPLOAD_FOLDER']):
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
-# Function to process the receipt image and extract text
-def process_receipt_image(image_path):
-    # Load the image
-    img = cv2.imread(image_path)
-    if img is None:
-        print("Error: Image not found!")
-        return ""
-
-    # Convert to grayscale
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-    # Increase contrast
-    gray = cv2.convertScaleAbs(gray, alpha=1.5, beta=0)
-
-    # Apply Gaussian blur to remove noise
-    blurred = cv2.GaussianBlur(gray, (5, 5), 0)
-
-    # Thresholding the image
-    thresh = cv2.adaptiveThreshold(blurred, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, 
-                                   cv2.THRESH_BINARY, 11, 2)
-
-    # Optionally, apply some morphological transformations to remove noise (dilate and erode)
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
-    morph = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
-
-    # Save the processed image for debugging (optional)
-    cv2.imwrite("processed_image.jpg", morph)
-
-    # Perform OCR on the processed image
-    custom_config = r'--oem 3 --psm 6'  # Update if needed
-    text = pytesseract.image_to_string(morph, lang='eng', config=custom_config)
-
-    # Print the extracted text for debugging
-    print("Extracted Text:")
-    print(text)
-
-    return text
-
-# Route for the main page
-@app.route('/')
-def index():
+# Route to upload receipt
+@app.route('/', methods=['GET', 'POST'])
+def upload_receipt():
+    if request.method == 'POST':
+        if 'receipt' not in request.files:
+            flash('No file part', 'error')
+            return redirect(request.url)
+        file = request.files['receipt']
+        if file.filename == '':
+            flash('No selected file', 'error')
+            return redirect(request.url)
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            extracted_text = process_receipt_image(filename)
+            flash('Receipt uploaded successfully', 'success')
+            return render_template('index.html', extracted_text=extracted_text)
+        else:
+            flash('Invalid file format. Please upload a valid image.', 'error')
+            return redirect(request.url)
     return render_template('index.html')
 
-# Route for uploading receipt
-@app.route('/upload', methods=['POST'])
-def upload_receipt():
-    if 'receipt' not in request.files:
-        flash("No file part", 'error')
-        return redirect(request.url)
+# Function to process the uploaded receipt image and extract text using Tesseract
+def process_receipt_image(filename):
+    image_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    img = cv2.imread(image_path)
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    # Optional: Apply thresholding for better results
+    _, thresh = cv2.threshold(gray, 150, 255, cv2.THRESH_BINARY_INV)
+    # Use pytesseract to extract text
+    custom_config = r'--oem 3 --psm 6'
+    extracted_text = pytesseract.image_to_string(thresh, config=custom_config)
+    return extracted_text
 
-    file = request.files['receipt']
-    if file.filename == '':
-        flash("No selected file", 'error')
-        return redirect(request.url)
+# Route to view all receipts
+@app.route('/view_receipts')
+def view_receipts():
+    receipts = get_all_receipts()  # This can be from your database or folder
+    return render_template('view_receipts.html', receipts=receipts)
 
-    if file and allowed_file(file.filename):
-        # Save the uploaded image to a temporary file
-        filename = secure_filename(file.filename)
-        image_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(image_path)
+# Function to get all receipts (replace with actual logic)
+def get_all_receipts():
+    # In a real-world scenario, you might pull this from a database.
+    # For simplicity, we'll list the files in the 'uploads' folder.
+    receipt_files = os.listdir(app.config['UPLOAD_FOLDER'])
+    receipts = []
+    for receipt in receipt_files:
+        if allowed_file(receipt):
+            receipts.append({
+                'filename': receipt,
+                'uploaded_on': '2024-12-24'  # Replace with actual timestamp
+            })
+    return receipts
 
-        # Process the image to extract text
-        extracted_text = process_receipt_image(image_path)
-
-        # Display the extracted text in the UI
-        flash(f"Extracted Text: {extracted_text}", 'success')
-
-        return render_template('index.html')
-
-    flash("Invalid file format", 'error')
-    return redirect(request.url)
+# Route to export receipts to PDF (this is a placeholder)
+@app.route('/export_pdf')
+def export_pdf():
+    # Implement PDF export functionality here
+    flash('Exported to PDF (Feature coming soon)', 'info')
+    return redirect(url_for('upload_receipt'))
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View All Receipts</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- Header Section -->
+    <header class="bg-teal-500 text-white py-6">
+        <h1 class="text-3xl font-semibold text-center">All Receipts</h1>
+    </header>
+
+    <!-- Receipts List Section -->
+    <div class="max-w-lg mx-auto p-6 mt-8 bg-white shadow-lg rounded-lg border border-gray-200">
+        <table class="w-full text-left">
+            <thead>
+                <tr class="bg-teal-500 text-white">
+                    <th class="py-2 px-4">Receipt ID</th>
+                    <th class="py-2 px-4">Filename</th>
+                    <th class="py-2 px-4">Uploaded On</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for receipt in receipts %}
+                    <tr>
+                        <td class="py-2 px-4">{{ receipt.id }}</td>
+                        <td class="py-2 px-4">{{ receipt.filename }}</td>
+                        <td class="py-2 px-4">{{ receipt.uploaded_on }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Footer Section -->
+    <footer class="bg-gray-200 py-4 mt-8">
+        <p class="text-center text-gray-700">&copy; 2024 Receipt Reader. All Rights Reserved.</p>
+    </footer>
+
+</body>
+</html>
