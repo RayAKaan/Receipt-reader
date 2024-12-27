@@ -10,29 +10,50 @@
 
     <!-- Header Section -->
     <header class="bg-teal-500 text-white py-6">
-        <h1 class="text-3xl font-semibold text-center">All Receipts</h1>
+        <div class="container mx-auto flex justify-between items-center px-4">
+            <h1 class="text-3xl font-semibold">All Receipts</h1>
+            <a href="{{ url_for('upload_receipt') }}" class="bg-white text-teal-500 py-2 px-4 rounded-lg shadow hover:bg-gray-200">
+                Upload New Receipt
+            </a>
+        </div>
     </header>
 
     <!-- Receipts List Section -->
-    <div class="max-w-lg mx-auto p-6 mt-8 bg-white shadow-lg rounded-lg border border-gray-200">
-        <table class="w-full text-left">
-            <thead>
-                <tr class="bg-teal-500 text-white">
-                    <th class="py-2 px-4">Receipt ID</th>
-                    <th class="py-2 px-4">Filename</th>
-                    <th class="py-2 px-4">Uploaded On</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for receipt in receipts %}
-                    <tr>
-                        <td class="py-2 px-4">{{ receipt.id }}</td>
-                        <td class="py-2 px-4">{{ receipt.filename }}</td>
-                        <td class="py-2 px-4">{{ receipt.uploaded_on }}</td>
+    <div class="max-w-7xl mx-auto p-6 mt-8 bg-white shadow-lg rounded-lg border border-gray-200">
+        <h2 class="text-2xl font-semibold mb-4 text-center">Your Receipts</h2>
+
+        {% if receipts %}
+            <table class="w-full border-collapse border border-gray-300">
+                <thead>
+                    <tr class="bg-teal-500 text-white">
+                        <th class="py-3 px-4 border border-gray-300 text-center">Receipt ID</th>
+                        <th class="py-3 px-4 border border-gray-300 text-center">Filename</th>
+                        <th class="py-3 px-4 border border-gray-300 text-center">Uploaded On</th>
+                        <th class="py-3 px-4 border border-gray-300 text-center">Actions</th>
                     </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    {% for receipt in receipts %}
+                        <tr class="hover:bg-gray-100">
+                            <td class="py-2 px-4 border border-gray-300 text-center">{{ receipt[0] }}</td>
+                            <td class="py-2 px-4 border border-gray-300 text-center">{{ receipt[1] }}</td>
+                            <td class="py-2 px-4 border border-gray-300 text-center">{{ receipt[3] }}</td>
+                            <td class="py-2 px-4 border border-gray-300 text-center">
+                                <a href="{{ url_for('view_receipt_details', receipt_id=receipt[0]) }}" class="text-blue-500 hover:underline">
+                                    View
+                                </a>
+                                <span class="text-gray-400 mx-2">|</span>
+                                <a href="{{ url_for('delete_receipt', receipt_id=receipt[0]) }}" class="text-red-500 hover:underline">
+                                    Delete
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p class="text-center text-gray-600 py-4">No receipts found. Start by uploading your first receipt!</p>
+        {% endif %}
     </div>
 
     <!-- Footer Section -->
@@ -40,5 +61,7 @@
         <p class="text-center text-gray-700">&copy; 2024 Receipt Reader. All Rights Reserved.</p>
     </footer>
 
+    <!-- Link to the JavaScript file -->
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 </html>
