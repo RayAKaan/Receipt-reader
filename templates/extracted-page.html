@@ -5,17 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Receipt Details - PumpPal</title>
     <!-- Include Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
     <!-- Include Bootstrap CSS -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- Custom Styles -->
     <style>
         body {
-            font-family: 'Roboto', sans-serif;
-            background-color: #f8f9fa;
+            font-family: 'Poppins', sans-serif;
+            background-color: #1a202c; /* Dark background */
             margin: 0;
             padding: 0;
+            color: #e2e8f0; /* Light gray text */
         }
 
         .container {
@@ -26,12 +27,12 @@
         h1 {
             font-size: 2.5rem;
             text-align: center;
-            color: #2c3e50;
+            color: #4fd1c5; /* Teal color */
             margin-bottom: 20px;
         }
 
         .details-card {
-            background-color: #fff;
+            background-color: #2d3748; /* Dark card background */
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -40,18 +41,18 @@
 
         .details-card .card-title {
             font-size: 1.8rem;
-            color: #3498db;
+            color: #4fd1c5; /* Teal color */
             margin-bottom: 10px;
         }
 
         .details-card .card-text {
             font-size: 1.1rem;
-            color: #34495e;
+            color: #e2e8f0; /* Light gray for text */
         }
 
         .btn-back {
             font-size: 1rem;
-            background-color: #3498db;
+            background-color: #4fd1c5; /* Teal color */
             color: #fff;
             border: none;
             padding: 10px 20px;
@@ -62,7 +63,7 @@
         }
 
         .btn-back:hover {
-            background-color: #2980b9;
+            background-color: #38b2ac; /* Darker teal */
         }
 
         .table th, .table td {
@@ -85,6 +86,35 @@
             background-color: #f8d7da;
             color: #721c24;
         }
+
+        /* Style for the uploaded image and highlight canvas */
+        .image-preview-container {
+            position: relative;
+            text-align: center;
+        }
+
+        #receiptImage {
+            max-width: 100%;
+            height: auto;
+        }
+
+        #highlightCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+        }
+
+        /* Style for the extracted text */
+        .extracted-text {
+            position: absolute;
+            font-size: 16px;
+            color: red;
+            font-weight: bold;
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 5px;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
@@ -95,11 +125,11 @@
     <!-- Display flash messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
-            <div class="flash {{ category }}">
-                {% for category, message in messages %}
+            {% for category, message in messages %}
+                <div class="flash {{ category }}">
                     {{ message }}
-                {% endfor %}
-            </div>
+                </div>
+            {% endfor %}
         {% endif %}
     {% endwith %}
 
@@ -110,6 +140,21 @@
         <p class="card-text"><strong>Total Fuel Quantity:</strong> {{ fuel_quantity }} Liters</p>
         <p class="card-text"><strong>Price per Liter:</strong> ₹{{ price_per_liter }}</p>
         <p class="card-text"><strong>Total Cost:</strong> ₹{{ total_cost }}</p>
+    </div>
+
+    <!-- Display the uploaded image with highlighted parts -->
+    <div class="details-card">
+        <h2 class="card-title">Receipt Image with Highlights</h2>
+        <div class="image-preview-container">
+            <img id="receiptImage" src="{{ receipt_image_url }}" alt="Receipt Image" />
+            <canvas id="highlightCanvas"></canvas>
+            <!-- Extracted text will be displayed here -->
+            {% for text, x, y in extracted_text %}
+            <div class="extracted-text" style="top: {{ y|default:0 }}px; left: {{ x|default:0 }}px;">{{ text }}</div>
+
+
+            {% endfor %}
+        </div>
     </div>
 
     <!-- Data Table (Optional) -->
@@ -151,6 +196,34 @@
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<script>
+    // Function to highlight the extracted text on the receipt image
+    window.onload = function() {
+        const image = document.getElementById('receiptImage');
+        const canvas = document.getElementById('highlightCanvas');
+        const context = canvas.getContext('2d');
+
+        // Ensure the canvas matches the image size
+        canvas.width = image.width;
+        canvas.height = image.height;
+
+        // Example of extracted text and its position (this would come from backend or OCR)
+        const extractedText = [
+            { text: "Date: 2025-01-07", x: 50, y: 50 },
+            { text: "Total Cost: ₹500", x: 200, y: 150 },
+            { text: "Fuel Quantity: 20L", x: 50, y: 200 }
+        ];
+
+        // Draw rectangles around the extracted parts
+        context.strokeStyle = 'rgba(255, 0, 0, 0.7)'; // Red color with transparency
+        context.lineWidth = 3;
+
+        extractedText.forEach(part => {
+            context.strokeRect(part.x, part.y - 20, 250, 30); // Adjust rectangle position/size
+        });
+    };
+</script>
 
 </body>
 </html>

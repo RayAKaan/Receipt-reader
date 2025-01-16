@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Receipts</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles */
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #1a202c; /* Dark background */
+            color: #e2e8f0; /* Light text */
+        }
+
+        .container {
+            max-width: 800px;
+            margin: auto;
+            padding: 30px;
+            background-color: #2d3748; /* Dark gray content area */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+            border-radius: 10px;
+            margin-top: 50px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 10px;
+            border-bottom: 1px solid #4a5568; /* Subtle border */
+        }
+
+        th {
+            text-align: left;
+            color: #81e6d9; /* Teal color for headers */
+        }
+
+        tr:hover {
+            background-color: #4a5568; /* Darker gray on hover */
+        }
+
+        a.btn {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+
+        a.btn-view {
+            background-color: #3182ce;
+            color: white;
+        }
+
+        a.btn-view:hover {
+            background-color: #2b6cb0;
+        }
+
+        button.btn-delete {
+            background-color: #e53e3e;
+            color: white;
+            padding: 5px 15px;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button.btn-delete:hover {
+            background-color: #c53030;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Header Section -->
+        <h1 class="text-3xl font-bold text-center text-teal-400 mb-4">View Previous Receipts</h1>
+        <p class="text-lg text-gray-400 text-center mb-6">Manage your receipts with ease.</p>
+
+        <!-- List of Receipts -->
+        <div class="receipt-list">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Receipt Name</th>
+                        <th>Date Added</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for receipt in receipts %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ receipt[1] }}</td> <!-- Filename -->
+                        <td>{{ receipt[4] }}</td> <!-- Timestamp -->
+                        <td>
+                            <!-- View Button -->
+                            <a href="{{ url_for('view_receipt_details', receipt_id=receipt[0]) }}" class="btn btn-view">
+                                View
+                            </a>
+                            <!-- Delete Button -->
+                            <form action="{{ url_for('delete_receipt', receipt_id=receipt[0]) }}" method="POST" style="display: inline;">
+                                <button type="submit" class="btn-delete">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Back to Home Button -->
+        <div class="mt-6 text-center">
+            <a href="/" class="bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-lg">
+                Back to Home
+            </a>
+        </div>
+    </div>
+
+</body>
+</html>

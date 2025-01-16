@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Receipt</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Custom styles for loading animation */
+        .loading-spinner {
+            display: none;
+            border: 4px solid transparent;
+            border-top: 4px solid #4fd1c5; /* Tailwind teal color */
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Custom file input */
+        .file-input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .file-input-wrapper input[type="file"] {
+            opacity: 0;
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            cursor: pointer;
+        }
+
+        .file-input-wrapper label {
+            background-color: #2d3748;
+            color: #e2e8f0;
+            padding: 10px 20px;
+            border: 2px dashed #4fd1c5;
+            border-radius: 8px;
+            text-align: center;
+            width: 100%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .file-input-wrapper:hover label {
+            background-color: #4fd1c5;
+            color: white;
+        }
+
+        /* Custom styles for the charts */
+        .chart-container {
+            width: 48%;
+            margin-top: 20px;
+        }
+
+        .main-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 2%;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-200 flex flex-col justify-between min-h-screen">
+
+    <!-- Header Section -->
+    <header class="bg-teal-500 text-white py-4">
+        <div class="container mx-auto text-center">
+            <h1 class="text-3xl font-bold">Upload Receipt</h1>
+        </div>
+    </header>
+
+    <!-- Upload Receipt Section -->
+    <main class="flex-grow">
+        <div class="container mx-auto p-8 bg-gray-800 rounded-lg shadow-lg max-w-7xl mt-10">
+            <h2 class="text-2xl font-semibold text-teal-400 mb-6 text-center">Upload a New Receipt</h2>
+
+            <form action="{{ url_for('upload_receipt') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
+                <div class="file-input-wrapper">
+                    <input 
+                        type="file" 
+                        id="receipt_file" 
+                        name="receipt" 
+                        accept=".jpg,.jpeg,.png,.pdf" 
+                        required
+                    >
+                    <label for="receipt_file">Select Receipt File</label>
+                </div>
+
+                <button 
+                    type="submit" 
+                    class="w-full bg-teal-500 text-white py-3 rounded-lg font-semibold text-lg hover:bg-teal-600 transition duration-200"
+                >
+                    <span class="inline-block">Upload Receipt</span>
+                    <span class="loading-spinner ml-2"></span>
+                </button>
+            </form>
+
+            {% if message %}
+                <div class="flash-messages mt-4">
+                    <div class="p-3 rounded-lg text-center {% if message_type == 'success' %}bg-green-500 text-white{% else %}bg-red-500 text-white{% endif %}">
+                        {{ message }}
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Main Container for Graphs and Upload Form -->
+            <div class="main-container">
+                <!-- Expense Chart Section -->
+                <div class="chart-container">
+                    <h3 class="text-xl font-semibold text-teal-400 mb-4 text-center">Spending Overview</h3>
+                    <a href="{{ url_for('expense_graphs') }}">
+                        <canvas id="categoryChart"></canvas>
+                    </a>
+                </div>
+
+                <!-- View All Receipts Button -->
+                <div class="w-1/3 text-center">
+                    <a href="{{ url_for('view_receipts') }}" class="bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-lg">
+                        View All Receipts
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer Section -->
+    <footer class="bg-teal-500 text-white py-4 text-center">
+        <p>&copy; 2024 Receipt Reader. All Rights Reserved.</p>
+    </footer>
+
+    <script>
+        // Show loading spinner on form submit
+        document.querySelector('form').addEventListener('submit', function () {
+            const spinner = document.querySelector('.loading-spinner');
+            spinner.style.display = 'inline-block';
+        });
+
+        // Create the chart with the data passed from Flask
+        var overviewData = {{ overview_data|tojson }};
+        var ctx = document.getElementById('categoryChart').getContext('2d');
+        var categoryChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: overviewData.labels,
+                datasets: [{
+                    label: 'Total Spending by Category',
+                    data: overviewData.data,
+                    backgroundColor: '#4fd1c5',
+                    borderColor: '#2c7a7b',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+
+</body>
+</html>

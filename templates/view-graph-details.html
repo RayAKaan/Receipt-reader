@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Graph Details</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .btn-back {
+            background-color: #38b2ac; /* Tailwind Teal */
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin: 20px 0;
+        }
+
+        .btn-back:hover {
+            background-color: #319795;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-200 flex flex-col justify-between min-h-screen">
+
+    <!-- Header Section -->
+    <header class="bg-teal-500 text-white py-4">
+        <div class="container mx-auto text-center">
+            <h1 class="text-3xl font-bold">Expense Graph Details</h1>
+        </div>
+    </header>
+
+    <!-- Detailed Graph Section -->
+    <main class="flex-grow">
+        <div class="container mx-auto p-8 bg-gray-800 rounded-lg shadow-lg max-w-7xl mt-10">
+            <h3 class="text-2xl font-semibold text-teal-400 mb-4 text-center">Detailed Spending by Category</h3>
+
+            <!-- Add your graph rendering here (Canvas) -->
+            <canvas id="detailedChart"></canvas>
+
+            <!-- Back Button -->
+            <div class="text-center">
+                <a href="{{ url_for('upload_receipt') }}">
+                    <button class="btn-back">
+                        Go Back to Upload Page
+                    </button>
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer Section -->
+    <footer class="bg-teal-500 text-white py-4 text-center">
+        <p>&copy; 2024 Receipt Reader. All Rights Reserved.</p>
+    </footer>
+
+    <script>
+        // Sample chart code for detailed graph, assuming you have the data passed from Flask
+        var ctx = document.getElementById('detailedChart').getContext('2d');
+        var detailedChart = new Chart(ctx, {
+            type: 'line',  // You can change this to 'bar', 'pie', etc.
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],  // Example data
+                datasets: [{
+                    label: 'Monthly Expenses',
+                    data: [100, 200, 300, 400, 500, 600],
+                    borderColor: '#4fd1c5',
+                    borderWidth: 2,
+                    fill: false
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+
+</body>
+</html>

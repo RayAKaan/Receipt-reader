@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Graphs</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>  <!-- Include Chart.js -->
+    <script src="https://cdn.tailwindcss.com"></script>  <!-- Include Tailwind CSS -->
+</head>
+<body class="bg-gray-900 text-gray-200 min-h-screen">
+
+    <!-- Header Section -->
+    <header class="bg-teal-500 text-white py-4">
+        <div class="container mx-auto text-center">
+            <h1 class="text-3xl font-bold">Detailed Expense Graphs</h1>
+        </div>
+    </header>
+
+    <!-- Graph Section -->
+    <main class="flex-grow container mx-auto p-8 bg-gray-800 rounded-lg shadow-lg mt-10">
+        <h2 class="text-2xl font-semibold text-teal-400 mb-6 text-center">Expense Breakdown by Category</h2>
+        
+        <canvas id="expenseChart"></canvas>  <!-- Chart.js canvas to render the graph -->
+
+        <div class="text-center mt-6">
+            <!-- Go Back Button -->
+            <a href="{{ url_for('upload_receipt') }}">
+                <button class="bg-teal-500 hover:bg-teal-600 text-white py-2 px-6 rounded-lg font-semibold">
+                    Go Back to Upload Page
+                </button>
+            </a>
+        </div>
+
+        <script>
+            // Prepare data for the graph
+            const overviewData = {{ overview_data | tojson }};  // Passing data from Flask to JavaScript
+
+            // Chart.js code to render the pie chart
+            const ctx = document.getElementById('expenseChart').getContext('2d');
+            const expenseChart = new Chart(ctx, {
+                type: 'pie',  // Pie chart
+                data: {
+                    labels: overviewData.labels,  // Categories from the database
+                    datasets: [{
+                        label: 'Expense Breakdown',
+                        data: overviewData.data,  // Total expenses for each category
+                        backgroundColor: ['#38b2ac', '#3182ce', '#e53e3e', '#fbd38d', '#63b3ed'],  // Colors for each segment
+                        borderColor: ['#2c7a7b', '#2b6cb0', '#c53030', '#f6ad55', '#3182ce'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(tooltipItem) {
+                                    return tooltipItem.label + ': $' + tooltipItem.raw.toFixed(2);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        </script>
+    </main>
+
+    <!-- Footer Section -->
+    <footer class="bg-teal-500 text-white py-4 text-center">
+        <p>&copy; 2024 Receipt Reader. All Rights Reserved.</p>
+    </footer>
+
+</body>
+</html>

@@ -3,64 +3,211 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Receipt Reader</title>
+    <title>Upload and Highlight Receipt</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles */
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #1a202c; /* Dark background */
+            color: #e2e8f0; /* Light text */
+        }
+
+        .container {
+            max-width: 800px;
+            margin: auto;
+            padding: 30px;
+            background-color: #2d3748; /* Dark gray content area */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+            border-radius: 10px;
+            margin-top: 50px;
+            text-align: center;
+        }
+
+        .loading-spinner {
+            display: none;
+            border: 4px solid transparent;
+            border-top: 4px solid #38b2ac; /* Turquoise color */
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .upload-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 20px 0;
+        }
+
+        .image-preview {
+            position: relative;
+            margin-top: 20px;
+        }
+
+        #receiptImage {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        #highlightCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+        }
+
+        .btn {
+            margin: 15px;
+            padding: 12px 25px;
+            font-size: 18px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+            font-weight: bold;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background-color: #38b2ac; /* Turquoise color */
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #319795; /* Darker turquoise */
+            transform: scale(1.05);
+        }
+
+        .btn-reset {
+            background-color: #fbd38d; /* Yellow color */
+            color: white;
+        }
+
+        .btn-reset:hover {
+            background-color: #f6ad55; /* Darker yellow */
+            transform: scale(1.05);
+        }
+
+        /* Date and Time styling */
+        .date-time {
+            font-size: 1.2rem;
+            color: #e2e8f0;
+            margin-top: 10px;
+        }
+    </style>
 </head>
-<body class="bg-gray-50 text-gray-800">
+<body>
 
-    <!-- Header Section -->
-    <header class="bg-teal-500 text-white py-6">
-        <h1 class="text-3xl font-semibold text-center">Upload Receipt</h1>
-    </header>
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Header Section -->
+        <h1 class="text-3xl font-bold text-center text-teal-400 mb-4">Upload and Highlight Receipt</h1>
+        <p class="text-lg text-gray-400 text-center mb-6">Upload your receipt image, and we'll highlight the read and extracted parts for you.</p>
 
-    <!-- Main Content -->
-    <div class="max-w-lg mx-auto p-6 mt-8 bg-white shadow-lg rounded-lg border border-gray-200">
+        <!-- Date and Time Display -->
+        <div id="dateTime" class="date-time"></div>
 
-        <!-- Flash Messages -->
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                <div class="mb-4">
-                    <ul class="space-y-2">
-                        {% for category, message in messages %}
-                            <li class="text-red-500">
-                                <strong>{{ category }}:</strong> {{ message }}
-                            </li>
-                        {% endfor %}
-                    </ul>
+        <!-- Upload and Highlight Receipt Section -->
+        <div class="upload-container">
+            <form action="/upload" method="POST" enctype="multipart/form-data">
+                <input type="file" id="uploadInput" name="receipt" accept="image/*" class="mb-4 p-2 border-2 border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-teal-500" />
+                <div class="image-preview">
+                    <img id="receiptImage" src="" alt="Receipt Image" />
+                    <canvas id="highlightCanvas"></canvas>
                 </div>
-            {% endif %}
-        {% endwith %}
-
-        <!-- Receipt Upload Form -->
-        <form action="/" method="POST" enctype="multipart/form-data">
-            <div class="mb-4">
-                <label for="receipt" class="block text-lg font-medium text-gray-700">Choose a receipt to upload</label>
-                <input type="file" name="receipt" id="receipt" class="mt-2 w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-400" required>
-            </div>
-            <button type="submit" class="w-full bg-teal-600 text-white py-2 rounded-md hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-300">Upload</button>
-        </form>
-
-        <!-- Links -->
-        <div class="mt-6 text-center">
-            <a href="/view_receipts" class="text-teal-600 hover:text-teal-700 mx-2">View All Receipts</a>
-            <a href="/export_pdf" class="text-teal-600 hover:text-teal-700 mx-2">Export to PDF</a>
+                <button type="submit" class="btn btn-primary">Upload Receipt</button>
+            </form>
         </div>
+
+        <!-- Buttons for functionality -->
+        <div class="mt-4">
+            <button class="btn btn-reset" onclick="clearImage()">Clear Image</button>
+            <button class="btn btn-secondary" onclick="downloadImage()">Download Highlighted Image</button>
+        </div>
+
+        <!-- Loading Spinner -->
+        <div id="loading-spinner" class="loading-spinner mx-auto mt-4"></div>
     </div>
 
-    <!-- Extracted Text Section (at the bottom with enhanced visuals) -->
-    {% if extracted_text %}
-        <div class="max-w-lg mx-auto p-6 mt-12 bg-teal-50 shadow-lg rounded-lg border border-teal-300">
-            <h2 class="text-2xl font-semibold text-teal-600">Extracted Text</h2>
-            <div class="mt-4 p-4 bg-white text-gray-700 rounded-lg shadow-inner">
-                <p class="text-lg whitespace-pre-wrap">{{ extracted_text }}</p>
-            </div>
-        </div>
-    {% endif %}
+    <script>
+        // Function to display the current date and time
+        function displayDateTime() {
+            const now = new Date();
+            const options = { 
+                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+                hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
+            };
+            document.getElementById('dateTime').textContent = now.toLocaleString('en-US', options);
+        }
 
-    <!-- Footer Section -->
-    <footer class="bg-gray-200 py-4 mt-8">
-        <p class="text-center text-gray-700">&copy; 2024 Receipt Reader. All Rights Reserved.</p>
-    </footer>
+        // Call displayDateTime to show the date and time
+        displayDateTime();
 
+        // Handle file upload and display receipt image with highlights
+        document.getElementById('uploadInput').addEventListener('change', handleFileUpload);
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const image = document.getElementById('receiptImage');
+                    image.src = e.target.result;
+
+                    // Clear previous highlights
+                    const canvas = document.getElementById('highlightCanvas');
+                    const context = canvas.getContext('2d');
+                    context.clearRect(0, 0, canvas.width, canvas.height);
+                    
+                    // Set canvas size to match the image
+                    setTimeout(() => {
+                        canvas.width = image.width;
+                        canvas.height = image.height;
+                        highlightScannedParts();
+                    }, 100);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function highlightScannedParts() {
+            const canvas = document.getElementById('highlightCanvas');
+            const context = canvas.getContext('2d');
+
+            context.strokeStyle = '#38b2ac'; /* Turquoise color for highlights */
+            context.lineWidth = 3;
+
+            scannedParts.forEach(part => {
+                context.strokeRect(part.x, part.y, part.width, part.height);
+                context.font = '16px Arial';
+                context.fillStyle = '#38b2ac';
+                context.fillText(part.label, part.x, part.y - 10); // Display label above the rectangle
+            });
+        }
+
+        // Clear the image and reset the canvas
+        function clearImage() {
+            document.getElementById('uploadInput').value = '';
+            const image = document.getElementById('receiptImage');
+            image.src = '';
+            const canvas = document.getElementById('highlightCanvas');
+            const context = canvas.getContext('2d');
+            context.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        // Function to navigate to the receipt details page
+        function viewReceipt(id) {
+            window.location.href = `/view_receipt_details/${id}`;
+        }
+    </script>
 </body>
 </html>

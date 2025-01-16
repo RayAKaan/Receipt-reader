@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receipt Details</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f7f9fc;
+            color: #2d3748;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: auto;
+            padding: 30px;
+            background-color: #ffffff;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            margin-top: 50px;
+            text-align: center;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            font-size: 18px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+            font-weight: bold;
+        }
+
+        .btn-primary {
+            background-color: #38b2ac;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #319795;
+            transform: scale(1.05);
+        }
+
+        .btn-secondary {
+            background-color: #fbd38d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #f6ad55;
+            transform: scale(1.05);
+        }
+
+        .receipt-details img {
+            max-width: 100%;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .receipt-info {
+            margin-top: 30px;
+        }
+
+        .receipt-info h2 {
+            font-size: 24px;
+            font-weight: bold;
+            color: #38b2ac;
+            margin-bottom: 20px;
+        }
+
+        .receipt-info p {
+            font-size: 18px;
+            color: #2d3748;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Header Section -->
+        <h1 class="text-3xl font-bold text-center text-primary mb-4">Receipt Details</h1>
+        <p class="text-lg text-gray-700 text-center mb-6">View the details of the uploaded receipt, including highlighted parts and extracted data.</p>
+
+        <!-- Receipt Image Display -->
+        <div class="receipt-details">
+            <img id="receiptImage" src="" alt="Receipt Image" />
+        </div>
+
+        <!-- Receipt Information -->
+        <div class="receipt-info">
+            <h2>Extracted Details:</h2>
+            <p><strong>Receipt ID:</strong> <span id="receiptId">#123456</span></p>
+            <p><strong>Store Name:</strong> <span id="storeName">ABC Supermarket</span></p>
+            <p><strong>Total Amount:</strong> <span id="totalAmount">$45.67</span></p>
+            <p><strong>Items:</strong></p>
+            <ul id="itemsList">
+                <li>Item 1: $12.99</li>
+                <li>Item 2: $22.50</li>
+                <li>Item 3: $10.18</li>
+            </ul>
+        </div>
+
+        <!-- Buttons for functionality -->
+        <div class="mt-4">
+            <button class="btn btn-primary" onclick="downloadReceiptDetails()">Download Receipt Details</button>
+            <button class="btn btn-secondary" onclick="goBack()">Go Back</button>
+        </div>
+    </div>
+
+    <script>
+        // Mock data for demonstration (to be replaced with actual data from backend)
+        const receiptData = {
+            id: '123456',
+            imageUrl: 'path/to/receipt-image.png',
+            storeName: 'ABC Supermarket',
+            totalAmount: '$45.67',
+            items: [
+                { name: 'Item 1', price: '$12.99' },
+                { name: 'Item 2', price: '$22.50' },
+                { name: 'Item 3', price: '$10.18' }
+            ]
+        };
+
+        // Load receipt data into the page
+        document.getElementById('receiptId').textContent = receiptData.id;
+        document.getElementById('storeName').textContent = receiptData.storeName;
+        document.getElementById('totalAmount').textContent = receiptData.totalAmount;
+
+        // Display items list
+        const itemsList = document.getElementById('itemsList');
+        receiptData.items.forEach(item => {
+            const li = document.createElement('li');
+            li.textContent = `${item.name}: ${item.price}`;
+            itemsList.appendChild(li);
+        });
+
+        // Set receipt image
+        document.getElementById('receiptImage').src = receiptData.imageUrl;
+
+        // Function to download receipt details as a text file
+        function downloadReceiptDetails() {
+            const text = `
+                Receipt ID: ${receiptData.id}
+                Store Name: ${receiptData.storeName}
+                Total Amount: ${receiptData.totalAmount}
+                Items:
+                ${receiptData.items.map(item => `${item.name}: ${item.price}`).join('\n')}
+            `;
+
+            const blob = new Blob([text], { type: 'text/plain' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `receipt_${receiptData.id}.txt`;
+            link.click();
+        }
+
+        // Go back to the previous page
+        function goBack() {
+            window.history.back();
+        }
+    </script>
+</body>
+</html>

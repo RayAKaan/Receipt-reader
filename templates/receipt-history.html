@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receipt History</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles */
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f7f9fc; /* Light blue background */
+            color: #2d3748; /* Darker gray text */
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            padding: 30px;
+            background-color: #ffffff; /* White background for content area */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+            border-radius: 10px;
+            margin-top: 50px;
+            text-align: center;
+        }
+
+        .receipt-card {
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin: 10px 0;
+            text-align: left;
+        }
+
+        .receipt-card img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+
+        .btn-delete {
+            background-color: #e53e3e; /* Red color */
+            color: white;
+        }
+
+        .btn-delete:hover {
+            background-color: #c53030; /* Darker red */
+            transform: scale(1.05);
+        }
+
+        .btn-clear-all {
+            background-color: #38b2ac; /* Teal color */
+            color: white;
+            margin-top: 20px;
+        }
+
+        .btn-clear-all:hover {
+            background-color: #319795; /* Darker teal */
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Main Container -->
+    <div class="container">
+        <h1 class="text-3xl font-bold mb-6">Scanned Receipt History</h1>
+        <p class="text-lg text-gray-700 mb-6">Here are your previously scanned receipts. You can view the details and delete any receipt.</p>
+
+        <!-- Receipt Cards -->
+        <div id="receiptList"></div>
+
+        <!-- Button to Clear All Receipts -->
+        <button class="btn btn-clear-all" onclick="clearAllReceipts()">Clear All Receipts</button>
+    </div>
+
+    <script>
+        // Sample receipt data structure in localStorage
+        // Stored data will have a structure like: { "receipts": [ { "image": "img_data", "text": "extracted_text" }, ... ] }
+
+        // Load receipts from localStorage and display them
+        function loadReceipts() {
+            const receiptListContainer = document.getElementById('receiptList');
+            const receipts = JSON.parse(localStorage.getItem('receipts')) || [];
+
+            if (receipts.length === 0) {
+                receiptListContainer.innerHTML = "<p>No receipts scanned yet.</p>";
+                return;
+            }
+
+            receiptListContainer.innerHTML = ""; // Clear any existing content
+
+            receipts.forEach((receipt, index) => {
+                const card = document.createElement('div');
+                card.classList.add('receipt-card');
+
+                const img = document.createElement('img');
+                img.src = receipt.image;
+                img.alt = "Receipt Image";
+
+                const text = document.createElement('p');
+                text.innerText = receipt.text;
+
+                const deleteButton = document.createElement('button');
+                deleteButton.innerText = "Delete Receipt";
+                deleteButton.classList.add('btn', 'btn-delete');
+                deleteButton.onclick = function() {
+                    deleteReceipt(index);
+                };
+
+                card.appendChild(img);
+                card.appendChild(text);
+                card.appendChild(deleteButton);
+                receiptListContainer.appendChild(card);
+            });
+        }
+
+        // Delete a specific receipt
+        function deleteReceipt(index) {
+            const receipts = JSON.parse(localStorage.getItem('receipts')) || [];
+            receipts.splice(index, 1); // Remove receipt at index
+            localStorage.setItem('receipts', JSON.stringify(receipts)); // Save updated list
+            loadReceipts(); // Reload the list to reflect the change
+        }
+
+        // Clear all receipts
+        function clearAllReceipts() {
+            localStorage.removeItem('receipts');
+            loadReceipts(); // Reload the list after clearing all
+        }
+
+        // Load receipts on page load
+        window.onload = loadReceipts;
+    </script>
+</body>
+</html>
